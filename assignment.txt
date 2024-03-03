@@ -1,0 +1,74 @@
+class HorizontalMinitermGenerator:
+    def __init__(self, predicates):
+        self.predicates = predicates
+
+    def generate_miniterms(self):
+        miniterms = []
+        for predicate in self.predicates:
+            miniterm = []
+            for key, value in predicate.items():
+                miniterm.append(f"{key}={value}")
+            miniterms.append(" AND ".join(miniterm))
+        return miniterms
+
+# Example usage:
+predicates = [
+    {"age": "30", "gender": "Male"},
+    {"age": "25", "gender": "Female", "city": "New York"}
+]
+
+generator = HorizontalMinitermGenerator(predicates)
+miniterms = generator.generate_miniterms()
+for miniterm in miniterms:
+    print(miniterm)
+
+
+The above phyton code generates horizontal miniterm fragments by joining key-value pairs of each predicate with 'AND' operator.
+
+For PL/SQL implementation,I created a similar logic using PL/SQL constructs to parse through the predicates and generate the miniterms accordingly. 
+
+
+
+CREATE OR REPLACE TYPE predicate_type AS OBJECT (
+    key VARCHAR2(100),
+    value VARCHAR2(100)
+);
+
+CREATE OR REPLACE TYPE predicate_list AS TABLE OF predicate_type;
+
+CREATE OR REPLACE PROCEDURE generate_miniterms(predicates IN predicate_list) AS
+    miniterm VARCHAR2(4000);
+BEGIN
+    FOR i IN 1..predicates.COUNT LOOP
+        miniterm := NULL;
+        FOR j IN 1..predicates(i).key.COUNT LOOP
+            IF miniterm IS NOT NULL THEN
+                miniterm := miniterm || ' AND ';
+            END IF;
+            miniterm := miniterm || predicates(i).key(j) || ' = ''' || predicates(i).value(j) || '''';
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE(miniterm);
+    END LOOP;
+END;
+/
+
+
+This PL/SQL procedure takes a list of predicates as input, where each predicate is represented as a collection of key-value pairs. It then iterates over each predicate, constructing a miniterm fragment by concatenating the key-value pairs with 'AND' operators. Finally, it prints out each miniterm fragment.
+
+To call this procedure, i would need to create a list of predicates and pass it as an argument. Here's an example:
+
+
+DECLARE
+    predicates predicate_list;
+BEGIN
+    predicates := predicate_list(
+        predicate_type('age', '30'),
+        predicate_type('gender', 'Male'),
+        predicate_type('age', '25'),
+        predicate_type('gender', 'Female'),
+        predicate_type('city', 'New York')
+    );
+    
+    generate_miniterms(predicates);
+END;
+/
